@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <h3>Test WebSocket</h3>
+</body>
+
+<script>
+  const WS_URL = "wss://websocket.atpman.net/websocket";
+  var b_kq = [];
+  var b_so_id=0;
+  // Payload đăng nhập (login)
+  const loginPayload = [
+    1,
+    "MiniGame",
+    "cuongnb1995",
+    "28021995",
+    {
+      "info": "{\"ipAddress\":\"113.185.47.33\",\"wsToken\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJnZW5kZXIiOjAsImNhblZpZXdTdGF0IjpmYWxzZSwiZGlzcGxheU5hbWUiOiJjdW9uZ3ZuaTE5OTUiLCJib3QiOjAsImlzTWVyY2hhbnQiOmZhbHNlLCJ2ZXJpZmllZEJhbmtBY2NvdW50Ijp0cnVlLCJwbGF5RXZlbnRMb2JieSI6ZmFsc2UsImN1c3RvbWVySWQiOjM1ODUxMzg2LCJhZmZJZCI6IjRhZTgzNWQ0LTYwNmUtNDM2OS04MDhlLWMxMGNiZGQ4OTc3OSIsImJhbm5lZCI6ZmFsc2UsImJyYW5kIjoiNzg5LmNsdWIiLCJ0aW1lc3RhbXAiOjE3NjA4NjgxMzQ2ODAsImxvY2tHYW1lcyI6W10sImFtb3VudCI6MCwibG9ja0NoYXQiOmZhbHNlLCJwaG9uZVZlcmlmaWVkIjpmYWxzZSwiaXBBZGRyZXNzIjoiMTEzLjE4NS40Ny4zMyIsIm11dGUiOmZhbHNlLCJhdmF0YXIiOiJodHRwczovL2FwaS54ZXVpLmlvL2ltYWdlcy9hdmF0YXIvYXZhdGFyXzIwLnBuZyIsInBsYXRmb3JtSWQiOjIsInVzZXJJZCI6IjRhZTgzNWQ0LTYwNmUtNDM2OS04MDhlLWMxMGNiZGQ4OTc3OSIsInJlZ1RpbWUiOjE3MDgwNzA1NjMxOTAsInBob25lIjoiIiwiZGVwb3NpdCI6dHJ1ZSwidXNlcm5hbWUiOiJTOF9jdW9uZ25iMTk5NSJ9.N3qC9SZfdph2TbhUKiw3aPpUMqCwC4u4qpZq3NB1ljY\",\"locale\":\"vi\",\"userId\":\"4ae835d4-606e-4369-808e-c10cbdd89779\",\"username\":\"S8_cuongnb1995\",\"timestamp\":1760868134680,\"refreshToken\":\"0958b6a5cd9140d5806bb19502598a43.fc85aec2e7954f5892ce1d4159c4655b\"}",
+      "signature": "093A3A4DF730BF534761C416988D710D7F42343EDDBC115EB4EDBA7A041BC853E460EF0C4090F0BA62AC138B3BAD4C6F366C5A68D96AD11FAFC3C4B4F51C9F97CF9A95131270BA6443C4CC0300E26A26AC7656A112325BFA48B4CEE15646349F49539E644434C03F99BD436C46460127B4763EB7D8566C29A784671C7A8DECEB"
+    }
+  ];
+
+  // Payload minigame (taixiu)
+  let miniGamePayload = [6, "MiniGame", "taixiuUnbalancedPlugin", {
+    "cmd": 2009,
+    "sid": 2528100,
+    "aid": 1
+  }];
+
+  let ws;
+
+  function connectWebSocket(b_so_id_n) {
+    miniGamePayload[3].sid = b_so_id_n;
+    ws = new WebSocket(WS_URL);
+
+    ws.onopen = () => {
+      console.log("✅ WebSocket connected");
+      // Gửi payload đăng nhập
+      ws.send(JSON.stringify(loginPayload));
+      console.log("➡️ Sent login payload");
+    };
+
+    ws.onmessage = (event) => {
+      //console.log("📩 Received:", event.data);
+      const json = JSON.parse(event.data);
+      const { d1, d2, d3, sid } = json[1];
+      const tong = d1 + d2 + d3;
+      //console.log("Tổng:", tong);
+      //console.log("ID:", sid);
+      if (typeof tong === "number" && miniGamePayload[3].sid == sid && tong > 0) {
+        b_so_id=sid;
+        if (b_kq.length > 10) {
+          b_kq.shift();
+          b_kq.push(tong);
+          const last5 = b_kq.slice(-10);
+          const allGreaterThan10 = last5.every(v => v > 10);
+          const allLessThan10 = last5.every(v => v <= 10);
+          //console.log("Kết quả hiện tại:", b_kq);
+          if (allGreaterThan10) {
+            console.log("🎉 Kết quả 10 lần gần nhất đều > 10! Tham gia đặt cược TÀI!");
+            beep();
+          }
+          if (allLessThan10) {
+            console.log("🎉 Kết quả 10 lần gần nhất đều <= 10! Tham gia đặt cược XIU!");
+            beep();
+          }
+          miniGamePayload[3].sid = sid + 1;
+          console.log("Kết quả hiện tại:"+ sid, b_kq);
+        } else {
+          b_kq.push(tong);
+          console.log("Kết quả hiện tại:"+ sid, b_kq);
+          miniGamePayload[3].sid = sid + 1;
+        }
+      }
+      setTimeout(() => {
+        ws.send(JSON.stringify(miniGamePayload));
+        //console.log("🎮 Sent mini game payload");
+      }, 1000);
+    };
+
+    ws.onerror = (err) => {
+      console.error("❌ WebSocket error:", err);
+    };
+
+    ws.onclose = (evt) => {
+      console.warn("⚠️ WebSocket closed:", evt.code, evt.reason);
+      connectWebSocket(b_so_id_n);
+    };
+  }
+
+  connectWebSocket(2528100);
+
+
+  function beep() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator(); // tạo dao động
+  osc.type = "sine"; // dạng sóng: sine, square, sawtooth, triangle
+  osc.frequency.value = 440; // tần số Hz (440Hz = nốt La)
+  osc.connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime + 0.2); // phát 0.2 giây
+}
+</script>
+
+</html>
