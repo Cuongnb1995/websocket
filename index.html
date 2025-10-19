@@ -69,7 +69,8 @@
             beep();
           }
           miniGamePayload[3].sid = sid + 1;
-          console.log("Kết quả hiện tại:"+ sid, b_kq);
+          //console.log("Kết quả hiện tại:"+ sid, b_kq);
+          document.getElementById('game').textContent = "Số ID-"+  sid + ": " + b_kq;
         } else {
           b_kq.push(tong);
           //console.log("Kết quả hiện tại:"+ sid, b_kq);
