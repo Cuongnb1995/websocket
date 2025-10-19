@@ -3,6 +3,7 @@
 
 <body>
   <h3>Test WebSocket</h3>
+  <p id="game"></p>
 </body>
 
 <script>
@@ -58,18 +59,21 @@
           const allLessThan10 = last5.every(v => v <= 10);
           //console.log("Kết quả hiện tại:", b_kq);
           if (allGreaterThan10) {
-            console.log("🎉 Kết quả 10 lần gần nhất đều > 10! Tham gia đặt cược TÀI!");
+            //console.log("🎉 Kết quả 10 lần gần nhất đều > 10! Tham gia đặt cược TÀI!");
+            document.getElementById('game').textContent = "Kết quả 10 lần gần nhất đều > 10 (T). ID-"+  sid + ": " + b_kq;
             beep();
           }
           if (allLessThan10) {
-            console.log("🎉 Kết quả 10 lần gần nhất đều <= 10! Tham gia đặt cược XIU!");
+            //console.log("🎉 Kết quả 10 lần gần nhất đều <= 10! Tham gia đặt cược XIU!");
+            document.getElementById('game').textContent = "Kết quả 10 lần gần nhất đều <= 10 (X). ID-"+  sid + ": " + b_kq;
             beep();
           }
           miniGamePayload[3].sid = sid + 1;
           console.log("Kết quả hiện tại:"+ sid, b_kq);
         } else {
           b_kq.push(tong);
-          console.log("Kết quả hiện tại:"+ sid, b_kq);
+          //console.log("Kết quả hiện tại:"+ sid, b_kq);
+          document.getElementById('game').textContent = "Số ID-"+  sid + ": " + b_kq;
           miniGamePayload[3].sid = sid + 1;
         }
       }
@@ -81,6 +85,7 @@
 
     ws.onerror = (err) => {
       console.error("❌ WebSocket error:", err);
+      connectWebSocket(b_so_id_n);
     };
 
     ws.onclose = (evt) => {
